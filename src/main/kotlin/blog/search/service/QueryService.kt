@@ -10,11 +10,8 @@ class QueryService(
     private val queryRepository: QueryRepository
 ) {
 
-    fun findByQuery(query: String): Query? =
-        queryRepository.findByQuery(query)
-
     fun searchQuery(query: String): Long =
-        (findByQuery(query)?.let { findQuery ->
+        (queryRepository.findByQuery(query)?.let { findQuery ->
             findQuery.updateCount().also {
                 queryRepository.save(findQuery)
             }

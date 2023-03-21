@@ -1,8 +1,8 @@
 package blog.search.dto
 
-data class KakaoResponseDto(
+data class KakaoSearchResponseDto(
     val meta: Meta,
-    val documents: List<Documents>?
+    val documents: List<Document>?
 ) : SearchResponseDto {
 
     data class Meta (
@@ -12,7 +12,7 @@ data class KakaoResponseDto(
     ){
     }
 
-    data class Documents (
+    data class Document (
         val title: String,
         val contents: String,
         val url: String,
