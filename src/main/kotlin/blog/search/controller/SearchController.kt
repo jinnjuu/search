@@ -26,11 +26,9 @@ class SearchController(
         val sort: String = sort ?: "accuracy"
         val page: Int = page ?: 1
         val size: Int = size ?: 10
-        return try {
-            ResponseEntity.ok(kakaoService.search(query, sort, page, size))
-        } finally {
-            queryService.searchQuery(query)
-        }
+
+        if (!query.isNullOrBlank()) queryService.searchQuery(query)
+        return ResponseEntity.ok(kakaoService.search(query, sort, page, size))
     }
 
 }

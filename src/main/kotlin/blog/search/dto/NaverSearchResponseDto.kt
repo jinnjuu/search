@@ -6,7 +6,7 @@ data class NaverSearchResponseDto(
     val start: Int,
     val display: Int,
     val items: List<Item>?
-): SearchResponseDto {
+){
 
     data class Item(
         var title: String,

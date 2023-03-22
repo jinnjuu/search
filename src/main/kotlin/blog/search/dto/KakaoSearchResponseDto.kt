@@ -3,7 +3,7 @@ package blog.search.dto
 data class KakaoSearchResponseDto(
     val meta: Meta,
     val documents: List<Document>?
-) : SearchResponseDto {
+){
 
     data class Meta (
         val total_count: Int,
