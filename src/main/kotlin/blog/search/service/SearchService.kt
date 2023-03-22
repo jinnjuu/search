@@ -1,7 +1,5 @@
 package blog.search.service
 
-import blog.search.dto.SearchResponseDto
-
 interface SearchService {
 
     fun search(
@@ -9,6 +7,6 @@ interface SearchService {
         sort: String,
         page: Int,
         size: Int
-    ): SearchResponseDto
+    ): Any
 
 }

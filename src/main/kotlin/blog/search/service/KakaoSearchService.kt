@@ -1,7 +1,8 @@
 package blog.search.service
 
+import blog.search.dto.ExceptionResponse
 import blog.search.dto.KakaoSearchResponseDto
-import blog.search.dto.SearchResponseDto
+import org.json.JSONObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -27,7 +28,7 @@ class KakaoSearchService(
         sort: String,
         page: Int,
         size: Int
-    ): SearchResponseDto {
+    ): Any {
         val log: Logger = LoggerFactory.getLogger(javaClass)
 
         log.info(">>>>> Kakao API")
@@ -41,13 +42,18 @@ class KakaoSearchService(
             headers.contentType = MediaType.parseMediaType("application/json")
             val entity: HttpEntity<String> = HttpEntity<String>(headers)
             restTemplate.exchange(apiURL, HttpMethod.GET, entity, KakaoSearchResponseDto::class.java).body!!
-        } catch (e: HttpServerErrorException) {
-            log.error(e.printStackTrace().toString())
-            naverSearchService.search(query, sort, page, size)
-        } catch (e: HttpClientErrorException) {
-            log.error(e.printStackTrace().toString())
-            log.error("401 !!!")
-            naverSearchService.search(query, sort, page, size)
+        } catch (e: Exception) {
+            when (e) {
+                is HttpClientErrorException.Unauthorized, is HttpServerErrorException -> {
+                    log.error(e.printStackTrace().toString())
+                    naverSearchService.search(query, sort, page, size)
+                } else -> {
+                    ExceptionResponse(
+                        (e as HttpClientErrorException).statusCode.value(),
+                        JSONObject(e.message?.substringAfter(": \"")!!.substringBeforeLast("\"")).getString("message")
+                    )
+                }
+            }
         }
     }
 

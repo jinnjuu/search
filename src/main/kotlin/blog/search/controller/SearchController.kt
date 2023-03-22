@@ -1,41 +1,36 @@
 package blog.search.controller
 
-import blog.search.dto.SearchRequestDto
-import blog.search.dto.SearchResponseDto
 import blog.search.service.KakaoSearchService
 import blog.search.service.QueryService
 import io.swagger.v3.oas.annotations.Operation
-import jakarta.validation.Valid
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
+@Tag(name = "Search")
 @RestController
 @RequestMapping("/api/v1/search")
 class SearchController(
-    val searchService: KakaoSearchService,
+    val kakaoService: KakaoSearchService,
     val queryService: QueryService
 ) {
-
     @Operation(summary = "블로그 검색", description = "키워드를 통해 블로그를 검색합니다.")
     @GetMapping("/blog")
     fun searchBlog(
-        @RequestBody @Valid searchDto: SearchRequestDto
-    ): ResponseEntity<SearchResponseDto> =
-        try {
-            ResponseEntity.ok(
-                searchService.search(
-                    searchDto.query,
-                    searchDto.sort,
-                    searchDto.page,
-                    searchDto.size
-                )
-            )
+        @Parameter(description = "검색 질의어", required = true) query: String,
+        @Parameter(description = "결과 정렬 방식 (accuracy 또는 recency)", required = false, example = "accuracy") sort: String?,
+        @Parameter(description = "결과 페이지 번호", required = false, example = "1") page: Int?,
+        @Parameter(description = "한 페이지에 보여질 결과 수", required = false, example = "10") size: Int?
+    ): ResponseEntity<Any> {
+        val sort: String = sort ?: "accuracy"
+        val page: Int = page ?: 1
+        val size: Int = size ?: 10
+        return try {
+            ResponseEntity.ok(kakaoService.search(query, sort, page, size))
         } finally {
-            queryService.searchQuery(searchDto.query)
+            queryService.searchQuery(query)
         }
-
+    }
 
 }

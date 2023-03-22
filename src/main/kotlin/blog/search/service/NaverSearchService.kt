@@ -1,7 +1,8 @@
 package blog.search.service
 
+import blog.search.dto.ExceptionResponse
 import blog.search.dto.NaverSearchResponseDto
-import blog.search.dto.SearchResponseDto
+import org.json.JSONObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -10,8 +11,10 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
+import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestTemplate
 import java.io.*
+import java.lang.Exception
 import java.net.URLEncoder
 
 @Service
@@ -31,7 +34,7 @@ class NaverSearchService: SearchService {
         sort: String,
         start: Int,
         display: Int
-    ): SearchResponseDto {
+    ): Any {
         val log: Logger = LoggerFactory.getLogger(javaClass)
 
         log.info(">>>>> Naver API")
@@ -45,13 +48,21 @@ class NaverSearchService: SearchService {
         val sort = if (sort == "accuracy") "sim" else "date"
         val apiURL = "${searchBlogUrl}?query=$query&display=$display&start=$start&sort=$sort"
 
-        val restTemplate = RestTemplate()
-        val headers = HttpHeaders()
-        headers.set("X-Naver-Client-Id", clientId)
-        headers.set("X-Naver-Client-Secret", clientSecret)
-        headers.contentType = MediaType.parseMediaType("application/json")
-        val entity: HttpEntity<String> = HttpEntity<String>(headers)
-        return restTemplate.exchange(apiURL, HttpMethod.GET, entity, NaverSearchResponseDto::class.java).body!!
+        return try {
+            val restTemplate = RestTemplate()
+            val headers = HttpHeaders()
+            headers.set("X-Naver-Client-Id", clientId)
+            headers.set("X-Naver-Client-Secret", clientSecret)
+            headers.contentType = MediaType.parseMediaType("application/json")
+            val entity: HttpEntity<String> = HttpEntity<String>(headers)
+            restTemplate.exchange(apiURL, HttpMethod.GET, entity, NaverSearchResponseDto::class.java).body!!
+        } catch (e: Exception) {
+            println()
+            ExceptionResponse(
+                (e as HttpClientErrorException).statusCode.value(),
+                JSONObject(e.message?.substringAfter(": \"")!!.substringBeforeLast("\"").replace("<EOL>?","").replace("<EOL>","")).getString("errorMessage")
+            )
+        }
     }
 
 }
